@@ -1,98 +1,51 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
+import { useEffect } from 'react';
+import { View } from 'react-native';
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { useMe } from '@/api/hooks';
+import { useAuth } from '@/services/auth';
+import { useSettings } from '@/state/settings';
+import { Glow } from '@/ui/Glow';
+import { Wordmark } from '@/ui/Logo';
+import { Rise } from '@/ui/motion';
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
+/**
+ * Screen 1, Splash: the wordmark on the base colour (design.md's dark card + lime glow) while
+ * the session is restored, then: signed out → Welcome (or Explore when browsing);
+ * signed in with nothing followed and not onboarded → Onboarding; otherwise Home.
+ */
+export default function Splash() {
+  const hydrated = useAuth((s) => s.hydrated);
+  const status = useAuth((s) => s.status);
+  const browsing = useAuth((s) => s.browsing);
+  const userKey = useAuth((s) => s.userKey);
+  const onboarded = useAuth((s) => s.onboarded);
+  const me = useMe();
+  const setDepth = useSettings((s) => s.setDepth);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    const t = setTimeout(() => {
+      if (status !== 'signedIn') {
+        router.replace(browsing ? '/explore' : '/welcome');
+        return;
+      }
+      if (me.isLoading) return;
+      const u = me.data?.user;
+      if (u) setDepth(u.depthPreference);
+      const followsNothing = !!u && u.followingCounts.teams + u.followingCounts.competitions + u.followingCounts.players === 0;
+      if (followsNothing && userKey && !onboarded.includes(userKey)) router.replace('/onboarding/follow');
+      else router.replace('/home');
+    }, 650);
+    return () => clearTimeout(t);
+  }, [hydrated, status, browsing, me.isLoading, me.data, userKey, onboarded, setDepth]);
+
   return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
+    <View style={{ flex: 1, backgroundColor: '#0c1112', alignItems: 'center', justifyContent: 'center' }} accessibilityLabel="Tactiq is loading">
+      <Glow strength={0.5} />
+      <Rise>
+        <Wordmark size={34} ink="#f2f5f6" />
+      </Rise>
+    </View>
   );
 }
-
-export default function HomeScreen() {
-  return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
-
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
-
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
-
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
-  },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
-  },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
-  },
-  title: {
-    textAlign: 'center',
-  },
-  code: {
-    textTransform: 'uppercase',
-  },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
-  },
-});

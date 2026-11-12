@@ -69,11 +69,19 @@ function readBody(req) {
 /** POST /dev/token {"user":"ada"} -> {"token","expiresAt","userId"}. Dev only, bound to localhost. */
 function tokenServer() {
   const server = createServer(async (req, res) => {
+    const origin = req.headers.origin;
+    const cors = origin && /^http:\/\/(localhost|127\.0\.0\.1):8081$/.test(origin)
+      ? { "access-control-allow-origin": origin, "access-control-allow-methods": "POST", "access-control-allow-headers": "content-type", vary: "Origin" }
+      : {};
     const send = (status, body) => {
-      res.writeHead(status, { "content-type": "application/json" });
+      res.writeHead(status, { "content-type": "application/json", ...cors });
       res.end(JSON.stringify(body));
     };
     try {
+      if (req.method === "OPTIONS") {
+        res.writeHead(204, cors);
+        return res.end();
+      }
       if (req.method !== "POST" || req.url !== "/dev/token") return send(404, { error: "not found" });
       const body = JSON.parse((await readBody(req)) || "{}");
       const userId = devUserId(body.user ?? "fan");

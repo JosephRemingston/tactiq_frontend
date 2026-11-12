@@ -79,7 +79,8 @@ export function backendEnv() {
     QUEUE_BACKOFF_BASE_MS: "0",
     WORKER_BUDGET_MS: String(20 * 60_000),
 
-    CORS_ORIGINS: "",
+    // The Expo web build (used for headless screenshots) runs on :8081.
+    CORS_ORIGINS: "http://localhost:8081,http://127.0.0.1:8081",
     // Generous limits: the emulator, the gallery and hot reloads all share one IP.
     THROTTLE_IP_PER_MIN: "2000",
     THROTTLE_USER_PER_MIN: "2000",
