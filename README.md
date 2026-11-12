@@ -18,6 +18,16 @@ The dev stack runs the backend unmodified with its own environment. It never rea
 
 Do not start Expo with `CI=1`: in CI mode Metro stops watching files, so edits and new routes don't show up.
 
+## Against the deployed API (real sign-in)
+
+```sh
+EXPO_PUBLIC_API_URL=https://tactiq.josephremingston.dev \
+EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_... \
+npx expo start
+```
+
+With a Clerk key set, sign-in uses Clerk: Google through Clerk's browser OAuth, and "Sign in with email or passkey" / "Create an account" through Clerk's hosted sign-in. Both run in Expo Go. In the Clerk Dashboard, allow the redirect URL the app prints for `AuthSession.makeRedirectUri` (`exp://<your-ip>:8081/--/auth-callback` in Expo Go, `tactiq://auth-callback` in builds). The backend's `CLERK_AUTHORIZED_PARTIES` must accept native tokens (leave it empty for a native-only app). Billing stays simulated until Google Play is set up; production answers `billingAvailable: false`, so the app shows "Pro is coming soon".
+
 ## Simulated providers
 
 Sign-in (Clerk), Google Play Billing and AdMob sit behind adapters in `src/services/`. Until real keys and store accounts exist:

@@ -1,17 +1,16 @@
 import { router } from 'expo-router';
-import { useState } from 'react';
 import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GlossaryArt, PitchArt, StoryArt } from '@/components/illustrations';
-import { authActions, SignInError } from '@/services/auth';
+import { GoogleSignInButton } from '@/components/SignInButtons';
+import { authActions } from '@/services/auth';
 import { useTheme } from '@/theme/ThemeProvider';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { Deco } from '@/ui/bits';
 import { Wordmark } from '@/ui/Logo';
 import { Rise } from '@/ui/motion';
-import { useOverlay } from '@/ui/overlay';
 import { Eyebrow } from '@/ui/Pill';
 import { T } from '@/ui/Text';
 
@@ -25,21 +24,6 @@ const ART = [
 export default function Welcome() {
   const { c } = useTheme();
   const insets = useSafeAreaInsets();
-  const { snack } = useOverlay();
-  const [busy, setBusy] = useState(false);
-
-  const google = async () => {
-    setBusy(true);
-    try {
-      await authActions.signIn('google');
-      router.replace('/');
-    } catch (e) {
-      snack(e instanceof SignInError ? e.message : "We couldn't sign you in. Try again.");
-    } finally {
-      setBusy(false);
-    }
-  };
-
   return (
     <View style={{ flex: 1, backgroundColor: c.bg, paddingTop: insets.top + 12, paddingBottom: insets.bottom + 16, paddingHorizontal: 16 }}>
       <Deco width={120} style={{ position: 'absolute', left: -34, top: insets.top + 40 }} />
@@ -71,7 +55,7 @@ export default function Welcome() {
       </Rise>
       <View style={{ flex: 1 }} />
       <Rise index={3} style={{ gap: 12 }}>
-        <Button label="Continue with Google" icon="account_circle" onPress={google} loading={busy} />
+        <GoogleSignInButton />
         <Button label="Other ways to sign in" variant="secondary" onPress={() => router.push('/sign-in')} />
         <Button
           label="Browse without an account"

@@ -1,3 +1,4 @@
+import { getClerkInstance } from '@clerk/expo';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
@@ -68,7 +69,26 @@ const simulated: AuthProvider = {
   },
 };
 
-export const provider: AuthProvider = simulated;
+/**
+ * Real Clerk. Sign-in itself runs through Clerk's hooks in the sign-in screens (Google SSO and
+ * hosted sign-in), which then call `authActions.adoptSession`; this provider supplies session
+ * tokens for API calls and signs out.
+ */
+const clerk: AuthProvider = {
+  async signIn() {
+    throw new SignInError('Use the sign-in buttons.', 'failed');
+  },
+  async getToken(_userKey, force) {
+    const instance = getClerkInstance({ publishableKey: config.clerkPublishableKey });
+    return (await instance.session?.getToken({ skipCache: force })) ?? null;
+  },
+  async signOut() {
+    await getClerkInstance({ publishableKey: config.clerkPublishableKey }).signOut();
+  },
+};
+
+export const provider: AuthProvider = config.providers.auth === 'clerk' ? clerk : simulated;
+export const usingClerk = config.providers.auth === 'clerk';
 
 type AuthState = {
   status: 'signedOut' | 'signedIn';
@@ -112,8 +132,16 @@ export const authActions = {
   },
   async signOut() {
     await provider.signOut();
+    authActions.markSignedOut();
+  },
+  /** The session ended elsewhere (Clerk signed out, token revoked): clear local state only. */
+  markSignedOut() {
     useAuth.setState({ status: 'signedOut', userKey: null });
     signOutListeners.forEach((fn) => fn());
+  },
+  /** Clerk created a session (SSO or hosted sign-in): mark the app signed in as that user. */
+  adoptSession(userId: string) {
+    useAuth.setState({ status: 'signedIn', userKey: userId, browsing: false });
   },
   browse() {
     useAuth.setState({ browsing: true });

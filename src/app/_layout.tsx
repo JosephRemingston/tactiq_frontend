@@ -15,6 +15,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AppProviders } from '@/app-shell/AppProviders';
 import { boot } from '@/app-shell/boot';
 import { applyWebHarness } from '@/dev/webHarness';
+import { AuthRoot } from '@/services/clerk';
 import { ThemeProvider, useTheme } from '@/theme/ThemeProvider';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -64,11 +65,13 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <ThemeProvider>
-        <AppProviders>
-          <Navigator />
-        </AppProviders>
-      </ThemeProvider>
+      <AuthRoot>
+        <ThemeProvider>
+          <AppProviders>
+            <Navigator />
+          </AppProviders>
+        </ThemeProvider>
+      </AuthRoot>
     </GestureHandlerRootView>
   );
 }
