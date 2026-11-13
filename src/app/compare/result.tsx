@@ -1,3 +1,4 @@
+import { guardParams } from '@/components/ParamGuard';
 import { useLocalSearchParams } from 'expo-router';
 import { View } from 'react-native';
 
@@ -51,7 +52,7 @@ function summary(cols: Col[], dirOf: (k: string) => 'higher_better' | 'lower_bet
 }
 
 /** Screen 28, Compare result: two headers, a summary, one row per metric with a paired bar. Metered. */
-export default function CompareResult() {
+function CompareResult() {
   const { a, b, teamId } = useLocalSearchParams<{ a: string; b: string; teamId?: string }>();
   const { c } = useTheme();
   const defs = useMetricDefinitions();
@@ -144,3 +145,6 @@ export default function CompareResult() {
     </Screen>
   );
 }
+
+// Ids from the route are validated before the screen mounts (deep links are untrusted).
+export default guardParams({ a: 'uuid', b: 'uuid', teamId: 'uuid?' }, CompareResult);

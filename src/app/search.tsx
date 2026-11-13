@@ -103,7 +103,7 @@ export default function Search() {
   const { c } = useTheme();
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{ q?: string }>();
-  const [q, setQ] = useState(params.q ?? '');
+  const [q, setQ] = useState(typeof params.q === 'string' ? params.q.slice(0, 80) : '');
   const [debounced, setDebounced] = useState(q);
   const [only, setOnly] = useState<Kind | null>(null);
   useEffect(() => {

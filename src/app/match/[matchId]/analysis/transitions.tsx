@@ -1,3 +1,4 @@
+import { guardParams } from '@/components/ParamGuard';
 import { useMetricDefinitions, useTransitions } from '@/api/hooks';
 import type { MatchDetail, MetricValue, Transitions } from '@/api/types';
 import { BarGroup } from '@/charts/charts';
@@ -73,6 +74,9 @@ function Loaded({ match }: { match: MatchDetail }) {
 }
 
 /** Screen 22, Transitions. Metered. */
-export default function TransitionsView() {
+function TransitionsView() {
   return <AnalysisScreen title="Transitions">{(m) => <Loaded match={m} />}</AnalysisScreen>;
 }
+
+// Ids from the route are validated before the screen mounts (deep links are untrusted).
+export default guardParams({ matchId: 'uuid', teamId: 'uuid?' }, TransitionsView);

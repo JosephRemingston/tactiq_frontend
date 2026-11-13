@@ -1,3 +1,4 @@
+import { guardParams } from '@/components/ParamGuard';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { View } from 'react-native';
@@ -119,7 +120,7 @@ function Slot({ label, match, onPress }: { label: string; match?: MatchSummary; 
 }
 
 /** Screen 27, Compare: pick two matches (and optionally a team). Shows remaining comparisons. */
-export default function ComparePick() {
+function ComparePick() {
   const p = useLocalSearchParams<{ a?: string; b?: string }>();
   const signedIn = useSignedIn();
   const { openSheet, closeSheet } = useOverlay();
@@ -216,3 +217,6 @@ export default function ComparePick() {
     </Screen>
   );
 }
+
+// Ids from the route are validated before the screen mounts (deep links are untrusted).
+export default guardParams({ a: 'uuid?', b: 'uuid?' }, ComparePick);

@@ -1,3 +1,4 @@
+import { guardParams } from '@/components/ParamGuard';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo } from 'react';
 import { ActivityIndicator, View } from 'react-native';
@@ -34,7 +35,7 @@ function Stat({ label, value }: { label: string; value: number | string }) {
 }
 
 /** Screen 13, Player profile. Tapping an analysed match opens Player in match (metered). */
-export default function PlayerPage() {
+function PlayerPage() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { c } = useTheme();
   const q = usePlayer(id);
@@ -128,3 +129,6 @@ export default function PlayerPage() {
     </Screen>
   );
 }
+
+// Ids from the route are validated before the screen mounts (deep links are untrusted).
+export default guardParams({ id: 'uuid' }, PlayerPage);

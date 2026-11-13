@@ -1,3 +1,5 @@
+import { oneOf } from '@/security/validate';
+import { guardParams } from '@/components/ParamGuard';
 import { useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { ScrollView, View, useWindowDimensions } from 'react-native';
@@ -37,7 +39,7 @@ function HeaderSkeleton() {
 }
 
 /** Screens 14–18 (+ Analysis landing): the match centre. Sticky score header over six tabs. No ads. */
-export default function MatchCentre() {
+function MatchCentre() {
   const { matchId, tab: initial } = useLocalSearchParams<{ matchId: string; tab?: Tab }>();
   const { c } = useTheme();
   const insets = useSafeAreaInsets();
@@ -45,7 +47,7 @@ export default function MatchCentre() {
   const wide = width >= 840;
   const signedIn = useSignedIn();
   const q = useMatch(matchId);
-  const [tab, setTab] = useState<Tab>(initial ?? 'overview');
+  const [tab, setTab] = useState<Tab>(oneOf(initial, ['overview', 'story', 'insights', 'timeline', 'lineups', 'analysis'] as const, 'overview'));
   const [heroH, setHeroH] = useState(320);
   const [compact, setCompact] = useState(false);
 
@@ -131,3 +133,6 @@ export default function MatchCentre() {
     </View>
   );
 }
+
+// Ids from the route are validated before the screen mounts (deep links are untrusted).
+export default guardParams({ matchId: 'uuid' }, MatchCentre);

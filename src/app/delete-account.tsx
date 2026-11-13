@@ -5,6 +5,7 @@ import { api } from '@/api/endpoints';
 import { ApiError } from '@/api/errors';
 import { useSubscription } from '@/api/hooks';
 import { SignedOutCard } from '@/components/states';
+import { safeOpenUrl } from '@/security/links';
 import { authActions, useSignedIn } from '@/services/auth';
 import { Banner } from '@/ui/Banner';
 import { Button } from '@/ui/Button';
@@ -67,7 +68,7 @@ export default function DeleteAccount() {
             : 'If you have a Google Play subscription, cancel it in Google Play. Deleting your account does not cancel it.'}
         </Banner>
         {activeSub && sub.data?.subscription.manageUrl ? (
-          <Button label="Open Google Play subscriptions" variant="secondary" onPress={() => import('expo-web-browser').then((w) => w.openBrowserAsync(sub.data!.subscription.manageUrl!))} />
+          <Button label="Open Google Play subscriptions" variant="secondary" onPress={() => safeOpenUrl(sub.data?.subscription.manageUrl)} />
         ) : null}
         <TextField label={`Type ${PHRASE} to confirm`} value={text} onChangeText={setText} autoCapitalize="characters" autoCorrect={false} maxLength={20} placeholder={PHRASE} />
         {error ? (

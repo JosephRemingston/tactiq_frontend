@@ -1,5 +1,4 @@
 import { useQueryClient } from '@tanstack/react-query';
-import * as WebBrowser from 'expo-web-browser';
 import { useState } from 'react';
 import { View } from 'react-native';
 
@@ -8,6 +7,7 @@ import type { Purchase } from '@/api/types';
 import { QueryBoundary } from '@/components/QueryBoundary';
 import { SignedOutCard } from '@/components/states';
 import { fmtDate, fmtDayMonth } from '@/lib/format';
+import { safeOpenUrl } from '@/security/links';
 import { useSignedIn } from '@/services/auth';
 import { restorePurchases } from '@/services/billing';
 import { openPaywall } from '@/services/paywall';
@@ -125,7 +125,9 @@ export default function SubscriptionPage() {
                   )}
                 </Card>
               </Rise>
-              {s.manageUrl ? <Button label="Manage in Google Play" icon="open_in_new" variant="ink" chevron={false} onPress={() => WebBrowser.openBrowserAsync(s.manageUrl!)} /> : null}
+              {s.manageUrl ? <Button label="Manage in Google Play" icon="open_in_new" variant="ink" chevron={false} onPress={async () => {
+                    if (!(await safeOpenUrl(s.manageUrl))) snack("Couldn't open Google Play.");
+                  }} /> : null}
               {!isPro && s.billingAvailable ? <Button label="See Pro" onPress={() => openPaywall({ context: 'upgrade' })} /> : null}
               {!s.billingAvailable ? (
                 <Banner tone="info" title="Pro is coming soon">

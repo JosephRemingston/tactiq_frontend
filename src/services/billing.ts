@@ -28,8 +28,12 @@ const PRODUCTS: ProductDetails[] = [
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export const store = {
+  /**
+   * The simulated store exists only in development builds. A release build has no store until
+   * real Play Billing is connected, so purchases report "unavailable" and no fake token is ever sent.
+   */
   isAvailable(): boolean {
-    return useDev.getState().purchaseOutcome !== 'billing_unavailable';
+    return __DEV__ && useDev.getState().purchaseOutcome !== 'billing_unavailable';
   },
   /** Prices come from the store (Play ProductDetails), never from the API. */
   async queryProducts(): Promise<ProductDetails[]> {
@@ -38,6 +42,7 @@ export const store = {
   },
   /** Opens the store's purchase sheet; resolves with the purchase token, or a cancel/error. */
   async launchPurchase(productId: string, obfuscatedAccountId: string): Promise<{ token: string } | { cancelled: true } | { error: string }> {
+    if (!__DEV__) return { error: 'Purchases are not available in this build.' };
     const { purchaseOutcome, slowPurchase } = useDev.getState();
     await sleep(slowPurchase ? 900 : 150);
     const days = productId === 'pro_annual' ? 365 : 30;
@@ -112,6 +117,7 @@ export async function restorePurchases() {
 
 /** Dev only: put the account into a subscription state, through the same verify route. */
 export async function simulateSubscriptionState(state: PurchaseState) {
+  if (!__DEV__) throw new Error('Not available in this build.');
   const { subscription } = await api.subscription();
   const days = state === 'expired' || state === 'revoked' ? -1 : 12;
   return api.verifyPurchase('pro_monthly', `fake:pro_monthly:${state}:${days}:${subscription.obfuscatedAccountId}`);

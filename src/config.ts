@@ -5,7 +5,7 @@
 export const config = {
   apiUrl: process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000',
   /** Simulated sign-in only: the dev stack's token server. */
-  devTokenUrl: process.env.EXPO_PUBLIC_DEV_TOKEN_URL ?? 'http://localhost:3101',
+  devTokenUrl: __DEV__ ? (process.env.EXPO_PUBLIC_DEV_TOKEN_URL ?? 'http://localhost:3101') : '',
   /** Clerk publishable key. When set, sign-in uses real Clerk; otherwise the dev stack's simulated sign-in. */
   clerkPublishableKey: process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY ?? '',
   /** Which providers are live. Billing and ads stay simulated until store accounts and ad units exist. */

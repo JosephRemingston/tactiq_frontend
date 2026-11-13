@@ -1,3 +1,4 @@
+import { guardParams } from '@/components/ParamGuard';
 import { useMemo, useState } from 'react';
 import { View } from 'react-native';
 
@@ -189,7 +190,7 @@ function Side({ match, sel }: { match: MatchDetail; sel: string | null }) {
 }
 
 /** Screen 24, Shot map. Tablet: pitch and the selected shot side by side; phone: detail below. */
-export default function ShotMapView() {
+function ShotMapView() {
   const p = useMatchParam();
   const [state, setState] = useState<Sel>({ team: p.teamId ?? 'both', sel: null });
   return (
@@ -198,3 +199,6 @@ export default function ShotMapView() {
     </AnalysisScreen>
   );
 }
+
+// Ids from the route are validated before the screen mounts (deep links are untrusted).
+export default guardParams({ matchId: 'uuid', teamId: 'uuid?' }, ShotMapView);

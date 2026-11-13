@@ -1,6 +1,5 @@
 import * as Clipboard from 'expo-clipboard';
 import { router } from 'expo-router';
-import * as WebBrowser from 'expo-web-browser';
 import { useState } from 'react';
 import { View } from 'react-native';
 
@@ -13,6 +12,7 @@ import { QueryBoundary } from '@/components/QueryBoundary';
 import { ListRow, IconTile } from '@/components/rows';
 import { SignedOutCard } from '@/components/states';
 import { config } from '@/config';
+import { safeOpenUrl } from '@/security/links';
 import { fmtDayMonth } from '@/lib/format';
 import { authActions, useSignedIn } from '@/services/auth';
 import { openPaywall } from '@/services/paywall';
@@ -241,9 +241,9 @@ export default function Profile() {
                     }
                   />
                   <Divider inset={54} />
-                  <ListRow leading={<IconTile icon="policy" />} title="Privacy policy" onPress={() => WebBrowser.openBrowserAsync(config.privacyUrl)} />
+                  <ListRow leading={<IconTile icon="policy" />} title="Privacy policy" onPress={() => safeOpenUrl(config.privacyUrl)} />
                   <Divider inset={54} />
-                  <ListRow leading={<IconTile icon="gavel" />} title="Terms" onPress={() => WebBrowser.openBrowserAsync(config.termsUrl)} />
+                  <ListRow leading={<IconTile icon="gavel" />} title="Terms" onPress={() => safeOpenUrl(config.termsUrl)} />
                 </Card>
               </Rise>
 

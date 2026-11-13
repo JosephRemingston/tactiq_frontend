@@ -9,6 +9,7 @@ import { DataSourceFooter } from '@/components/DataSourceFooter';
 import { QueryBoundary } from '@/components/QueryBoundary';
 import { CardsSkeleton, OfflineBanner } from '@/components/states';
 import { MatchProvider } from '@/features/match/context';
+import { isSlugKey } from '@/security/validate';
 import { useTheme } from '@/theme/ThemeProvider';
 import { Chip, ChipBar } from '@/ui/Chip';
 import { useOverlay } from '@/ui/overlay';
@@ -38,8 +39,14 @@ export function ScopeChips({ value, onChange, available }: { value: MetricScope;
   );
 }
 
+const SCOPES = ['full', '1H', '2H', 'ET', 'leading', 'drawing', 'trailing'] as const;
+
+/** Route parameters for analysis views. Ids are checked by `guardParams`; the rest are sanitised here. */
 export function useMatchParam() {
-  return useLocalSearchParams<{ matchId: string; scope?: MetricScope; teamId?: string; keys?: string; family?: string }>();
+  const p = useLocalSearchParams<{ matchId: string; scope?: string; teamId?: string; keys?: string; family?: string }>();
+  const scope: MetricScope | undefined = p.scope && (SCOPES as readonly string[]).includes(p.scope) ? (p.scope as MetricScope) : undefined;
+  const keys = (p.keys ?? '').split(',').filter(isSlugKey).slice(0, 50).join(',') || undefined;
+  return { matchId: p.matchId, teamId: p.teamId, scope, keys, family: isSlugKey(p.family) ? p.family : undefined };
 }
 
 /**

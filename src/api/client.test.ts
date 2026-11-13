@@ -29,6 +29,7 @@ function setup(opts: { token?: string | null; refreshed?: string | null } = {}) 
   const refreshed = opts.refreshed === undefined ? 'tok-2' : opts.refreshed;
   configureClient({
     baseUrl: 'http://api.test',
+    isDev: true,
     getToken: async (force) => {
       tokens.push({ force });
       return force ? refreshed : nextToken;
@@ -190,6 +191,7 @@ describe('request', () => {
   test('timeout becomes TIMEOUT', async () => {
     configureClient({
       baseUrl: 'http://api.test',
+      isDev: true,
       getToken: async () => null,
       onUnauthorized: () => {},
       fetchImpl: ((_u: string, init: RequestInit) =>
@@ -201,6 +203,27 @@ describe('request', () => {
   test('a non-JSON 502 becomes INTERNAL', async () => {
     queue.push(() => reply(502, '<html>bad gateway</html>'));
     await assert.rejects(request('/v1/x'), (e: unknown) => e instanceof ApiError && e.code === 'INTERNAL' && e.status === 502);
+  });
+
+  test('a release build never sends a request over plain HTTP', async () => {
+    let sent = 0;
+    const cfg = (baseUrl: string, isDev?: boolean) =>
+      configureClient({
+        baseUrl,
+        isDev,
+        getToken: async () => 'tok',
+        onUnauthorized: () => {},
+        fetchImpl: (async () => {
+          sent++;
+          return reply(200, { statusCode: 200, message: 'ok', data: {} });
+        }) as unknown as typeof fetch,
+      });
+    cfg('http://api.test'); // isDev omitted: treated as release
+    await assert.rejects(request('/v1/me'), (e: unknown) => e instanceof ApiError && e.code === 'NETWORK');
+    assert.equal(sent, 0);
+    cfg('https://api.test', false);
+    await request('/v1/me');
+    assert.equal(sent, 1);
   });
 
   test('a 200 without data is BAD_RESPONSE', async () => {

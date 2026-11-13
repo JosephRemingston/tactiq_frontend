@@ -1,3 +1,4 @@
+import { Redirect } from 'expo-router';
 import { useState } from 'react';
 import { View } from 'react-native';
 
@@ -157,7 +158,7 @@ function Kit() {
   );
 }
 
-export default function Gallery() {
+function Gallery() {
   const mode = useSettings((s) => s.themeMode);
   const setMode = useSettings((s) => s.setThemeMode);
   return (
@@ -192,4 +193,9 @@ export function GalleryBoth() {
       </ThemeProvider>
     </>
   );
+}
+
+/** Development builds only. In a release build this route does not exist: it redirects home. */
+export default function GalleryRoute() {
+  return __DEV__ ? <Gallery /> : <Redirect href="/" />;
 }

@@ -4,15 +4,8 @@ import type { PaywallDetails } from '@/api/errors';
 import { fmtDayMonth } from '@/lib/format';
 
 /** Where the user tried to go; picks the context line on the paywall. */
-export type PaywallContext =
-  | 'analysis_limit'
-  | 'event_filters'
-  | 'possession_filters'
-  | 'older_season'
-  | 'saved_limit'
-  | 'compare_limit'
-  | 'rerun_limit'
-  | 'upgrade';
+export const PAYWALL_CONTEXTS = ['analysis_limit', 'event_filters', 'possession_filters', 'older_season', 'saved_limit', 'compare_limit', 'rerun_limit', 'upgrade'] as const;
+export type PaywallContext = (typeof PAYWALL_CONTEXTS)[number];
 
 export function contextForFeature(featureKey: string | undefined, hint?: PaywallContext): PaywallContext {
   switch (featureKey) {

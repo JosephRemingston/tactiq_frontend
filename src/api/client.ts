@@ -1,4 +1,5 @@
 // The Tactiq API client. Dependency-free (no React Native imports) so it runs under `node --test`.
+import { mayCall } from '../security/release.ts';
 import { ApiError, lastError, type ApiErrorCode } from './errors.ts';
 
 export type Meta = {
@@ -27,6 +28,8 @@ export type ClientConfig = {
   getToken: (force: boolean) => Promise<string | null>;
   /** Called when a refreshed token is still rejected: the app signs the user out. */
   onUnauthorized: () => void;
+  /** Development builds may call plain-HTTP local servers; release builds are HTTPS only. Defaults to false. */
+  isDev?: boolean;
   fetchImpl?: typeof fetch;
 };
 
@@ -154,6 +157,10 @@ async function once<T>(path: string, opts: RequestOptions, token: string | null)
  */
 export async function request<T>(path: string, opts: RequestOptions = {}): Promise<{ data: T; meta: Meta }> {
   if (!config) throw new Error('API client not configured');
+  // Never send a request, and so never a token, over plain HTTP from a release build.
+  if (!mayCall(config.baseUrl, config.isDev ?? false)) {
+    throw new ApiError({ status: 0, code: 'NETWORK', message: 'This build is not allowed to use an insecure connection' });
+  }
   const mode = opts.auth ?? 'optional';
   let token = mode === 'none' ? null : await config.getToken(false);
   if (mode === 'required' && !token) {

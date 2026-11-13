@@ -1,3 +1,4 @@
+import { guardParams } from '@/components/ParamGuard';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { View } from 'react-native';
@@ -207,7 +208,7 @@ function ShapeSide({ match, teamId, scope }: { match: MatchDetail; teamId: strin
 }
 
 /** Screen 20, Shape and passing network. Tablet: pitch and explanation side by side. */
-export default function ShapeView() {
+function ShapeView() {
   const p = useMatchParam();
   const [v, setV] = useState<View3 | null>(null);
   return (
@@ -218,9 +219,12 @@ export default function ShapeView() {
         return <ShapeSide match={match} teamId={cur.teamId} scope={cur.scope} />;
       }}>
       {(match) => {
-        const cur: View3 = v ?? { scope: (p.scope as View3['scope']) ?? 'full', teamId: p.teamId ?? match.home.id, startXI: true, selected: null };
+        const cur: View3 = v ?? { scope: p.scope === '1H' || p.scope === '2H' ? p.scope : 'full', teamId: p.teamId ?? match.home.id, startXI: true, selected: null };
         return <ShapeMain match={match} v={cur} set={(patch) => setV({ ...cur, ...patch })} />;
       }}
     </AnalysisScreen>
   );
 }
+
+// Ids from the route are validated before the screen mounts (deep links are untrusted).
+export default guardParams({ matchId: 'uuid', teamId: 'uuid?' }, ShapeView);

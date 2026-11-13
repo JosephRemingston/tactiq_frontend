@@ -1,10 +1,11 @@
-import * as WebBrowser from 'expo-web-browser';
 import { useState } from 'react';
 import { KeyboardAvoidingView, View } from 'react-native';
 
 import { GoogleSignInButton, HostedSignInButtons, signInErrorMessage, simulatedSignIn } from '@/components/SignInButtons';
 import { config } from '@/config';
+import { safeOpenUrl } from '@/security/links';
 import { usingClerk, type SignInMethod } from '@/services/auth';
+import { clerkRedirectUrl } from '@/services/clerk';
 import { Banner } from '@/ui/Banner';
 import { Button } from '@/ui/Button';
 import { Divider, Row, Stack } from '@/ui/bits';
@@ -91,6 +92,12 @@ export default function SignIn() {
                 <T v="caption" color="muted" align="center">
                   Email, password and passkeys open Tactiq's secure sign-in page.
                 </T>
+                {__DEV__ ? (
+                  <T v="caption" color="faint" align="center" selectable>
+                    Dev: redirect URL to allow in Clerk{'\n'}
+                    {clerkRedirectUrl()}
+                  </T>
+                ) : null}
               </>
             ) : (
               <SimulatedOptions onError={setError} />
@@ -100,11 +107,11 @@ export default function SignIn() {
         <View style={{ marginTop: 28 }}>
           <T v="caption" color="muted" align="center">
             By continuing you agree to the{' '}
-            <T v="caption" style={{ textDecorationLine: 'underline' }} onPress={() => WebBrowser.openBrowserAsync(config.termsUrl)} accessibilityRole="link">
+            <T v="caption" style={{ textDecorationLine: 'underline' }} onPress={() => safeOpenUrl(config.termsUrl)} accessibilityRole="link">
               Terms
             </T>{' '}
             and{' '}
-            <T v="caption" style={{ textDecorationLine: 'underline' }} onPress={() => WebBrowser.openBrowserAsync(config.privacyUrl)} accessibilityRole="link">
+            <T v="caption" style={{ textDecorationLine: 'underline' }} onPress={() => safeOpenUrl(config.privacyUrl)} accessibilityRole="link">
               Privacy policy
             </T>
             .

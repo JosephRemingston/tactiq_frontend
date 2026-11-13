@@ -1,3 +1,4 @@
+import { guardParams } from '@/components/ParamGuard';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { View } from 'react-native';
@@ -72,7 +73,7 @@ function SeasonPicker({ comp, value, onChange, lockedFrom }: { comp: Competition
 }
 
 /** Screen 9, Competition page: header + Follow, season picker with coverage, Matches / Teams tabs. */
-export default function CompetitionPage() {
+function CompetitionPage() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const q = useCompetition(id);
   const { isPro } = useIsPro();
@@ -167,3 +168,6 @@ export default function CompetitionPage() {
     </Screen>
   );
 }
+
+// Ids from the route are validated before the screen mounts (deep links are untrusted).
+export default guardParams({ id: 'uuid' }, CompetitionPage);

@@ -1,3 +1,5 @@
+import { oneOf } from '@/security/validate';
+import { guardParams } from '@/components/ParamGuard';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { View } from 'react-native';
@@ -130,9 +132,9 @@ function StyleTab({ style }: { style: TeamStyle }) {
 }
 
 /** Screen 11, Club page: header + Follow + data available; Overview, Squad, Style, Seasons. */
-export default function TeamPage() {
+function TeamPage() {
   const { id, tab: initial } = useLocalSearchParams<{ id: string; tab?: Tab }>();
-  const [tab, setTab] = useState<Tab>(initial ?? 'overview');
+  const [tab, setTab] = useState<Tab>(oneOf(initial, ['overview', 'squad', 'style', 'seasons'] as const, 'overview'));
   const q = useTeam(id);
   const cov = useTeamCoverage(id);
   const squad = useTeamPlayers(id);
@@ -244,3 +246,6 @@ export default function TeamPage() {
     </Screen>
   );
 }
+
+// Ids from the route are validated before the screen mounts (deep links are untrusted).
+export default guardParams({ id: 'uuid' }, TeamPage);

@@ -1,3 +1,4 @@
+import { guardParams } from '@/components/ParamGuard';
 import { router, useLocalSearchParams } from 'expo-router';
 import { View } from 'react-native';
 
@@ -92,7 +93,7 @@ function Body({ d }: { d: MetricDefinition }) {
 }
 
 /** Screen 31, Metric definition. */
-export default function MetricPage() {
+function MetricPage() {
   const { key } = useLocalSearchParams<{ key: string }>();
   const q = useMetricDefinition(key);
   return (
@@ -101,3 +102,6 @@ export default function MetricPage() {
     </Screen>
   );
 }
+
+// Ids from the route are validated before the screen mounts (deep links are untrusted).
+export default guardParams({ key: 'key' }, MetricPage);

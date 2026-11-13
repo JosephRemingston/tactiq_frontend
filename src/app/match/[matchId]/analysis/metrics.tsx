@@ -1,3 +1,4 @@
+import { guardParams } from '@/components/ParamGuard';
 import { useMemo, useState } from 'react';
 import { View } from 'react-native';
 
@@ -81,7 +82,7 @@ function Body({ match, data, defs, scope, family, highlight }: { match: MatchDet
 }
 
 /** Screen 19, Metrics: grouped by family, each metric a tile with home v away values. Metered. */
-export default function MetricsView() {
+function MetricsView() {
   const p = useMatchParam();
   const [scope, setScope] = useState<MetricScope>(p.scope ?? 'full');
   const [family, setFamily] = useState<string | null>(p.family && FAMILIES.some((f) => f.key === p.family) ? p.family : null);
@@ -141,3 +142,6 @@ function Inner({
     </Stack>
   );
 }
+
+// Ids from the route are validated before the screen mounts (deep links are untrusted).
+export default guardParams({ matchId: 'uuid', teamId: 'uuid?' }, MetricsView);

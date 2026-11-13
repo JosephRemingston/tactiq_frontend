@@ -36,6 +36,16 @@ Sign-in (Clerk), Google Play Billing and AdMob sit behind adapters in `src/servi
 - **Billing** sends the backend's fake purchase tokens to the real verify route, so every purchase and subscription state is a real server response. Pick the outcome in the dev menu.
 - **Ads** render a labelled Sponsored placeholder in the slots the server returns.
 
+## Security
+
+- **Session and tokens** are stored in the iOS Keychain / Android Keystore (`src/security/secureStorage.ts`, Clerk's token cache). Private data (notes, saved items, collections) is never written to the device and is cleared from memory on sign-out.
+- **Release guard** (`src/security/release.ts`): a release build refuses to run without an HTTPS API address, a Clerk publishable key and real Clerk sign-in, and the API client never sends a request over plain HTTP outside development.
+- **Dev tools** (`/dev`, `/gallery`, simulated sign-in, fake purchases) exist only in development builds and are stripped from the release bundle.
+- **Deep links** are untrusted: `guardParams` (`src/components/ParamGuard.tsx`) checks every route id before a screen mounts, and other parameters go through `src/security/validate.ts`.
+- **External links** open only through `safeOpenUrl` (HTTPS, allowlisted hosts). **Logs** go through `src/security/log.ts`: silent in release, redacted in development.
+- **Android**: backups off, cleartext traffic off, unused permissions blocked (`app.json`). These apply to real builds, not Expo Go.
+- Only `EXPO_PUBLIC_*` values ship in the app. Never give a secret that prefix; `npm test` fails if a secret-shaped string or secret-named public variable appears in `src/`.
+
 ## Dev menu
 
 In development builds a small **Dev** button sits above the tab bar. It switches between Free, Pro, new and signed-out users, forces any screen state (loading, empty, limit reached, error…), sets the simulated purchase result and subscription state, and opens the design-system gallery (`/gallery`).

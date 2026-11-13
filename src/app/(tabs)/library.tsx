@@ -1,3 +1,4 @@
+import { oneOf } from '@/security/validate';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { View } from 'react-native';
@@ -293,7 +294,7 @@ function Collections() {
 export default function Library() {
   const signedIn = useSignedIn();
   const p = useLocalSearchParams<{ tab?: Tab }>();
-  const [tab, setTab] = useState<Tab>(p.tab ?? 'saved');
+  const [tab, setTab] = useState<Tab>(oneOf(p.tab, ['following', 'saved', 'notes', 'collections'] as const, 'saved'));
   return (
     <Screen bottomInset={false}>
       <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>

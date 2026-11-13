@@ -1,3 +1,5 @@
+import { oneOf } from '@/security/validate';
+import { guardParams } from '@/components/ParamGuard';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { KeyboardAvoidingView, View } from 'react-native';
@@ -5,7 +7,7 @@ import { KeyboardAvoidingView, View } from 'react-native';
 import { useNote, useNoteMutations } from '@/api/hooks';
 import type { NoteSubject } from '@/api/types';
 import { QueryBoundary } from '@/components/QueryBoundary';
-import { SignedOutCard } from '@/components/states';
+import { NotFound, SignedOutCard } from '@/components/states';
 import { SubjectHeader } from '@/components/SubjectHeader';
 import { fmtRelative } from '@/lib/format';
 import { useSignedIn } from '@/services/auth';
@@ -119,7 +121,7 @@ function Editor({ noteId, subjectType, subjectId, initial, updatedAt }: { noteId
 }
 
 /** Screen 33, Note editor: subject header, up to 4,000 characters, autosave, delete. */
-export default function NoteEditor() {
+function NoteEditor() {
   const p = useLocalSearchParams<{ id: string; subjectType?: NoteSubject; subjectId?: string }>();
   const signedIn = useSignedIn();
   const isNew = p.id === 'new';
@@ -130,7 +132,14 @@ export default function NoteEditor() {
         <SignedOutCard body="Notes are private to your account." />
       </Screen>
     );
-  if (isNew && p.subjectType && p.subjectId) return <Editor noteId={null} subjectType={p.subjectType} subjectId={p.subjectId} initial="" />;
+  const subjectType = oneOf<NoteSubject | ''>(p.subjectType, ['match', 'team', 'player', 'insight'], '');
+  if (isNew && subjectType && p.subjectId) return <Editor noteId={null} subjectType={subjectType} subjectId={p.subjectId} initial="" />;
+  if (isNew)
+    return (
+      <Screen header={<TopBar title="Note" />}>
+        <NotFound />
+      </Screen>
+    );
   const note = q.data?.note;
   if (note) return <Editor key={note.id} noteId={note.id} subjectType={note.subjectType} subjectId={note.subjectId} initial={note.body} updatedAt={note.updatedAt} />;
   return (
@@ -139,3 +148,6 @@ export default function NoteEditor() {
     </Screen>
   );
 }
+
+// Ids from the route are validated before the screen mounts (deep links are untrusted).
+export default guardParams({ id: 'uuidOrNew', subjectId: 'uuid?' }, NoteEditor);

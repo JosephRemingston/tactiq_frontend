@@ -1,3 +1,4 @@
+import { guardParams } from '@/components/ParamGuard';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { View } from 'react-native';
@@ -124,7 +125,7 @@ function Body({ col }: { col: Collection }) {
 }
 
 /** Screen 34, Collection detail: rename, describe, delete; mixed items; drag to reorder; remove. */
-export default function CollectionPage() {
+function CollectionPage() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const q = useCollection(id);
   return (
@@ -133,3 +134,6 @@ export default function CollectionPage() {
     </Screen>
   );
 }
+
+// Ids from the route are validated before the screen mounts (deep links are untrusted).
+export default guardParams({ id: 'uuid' }, CollectionPage);

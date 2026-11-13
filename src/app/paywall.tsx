@@ -13,7 +13,8 @@ import { PlanCard } from '@/components/PlanCard';
 import { authActions, useSignedIn } from '@/services/auth';
 import { annualSaving, purchase, restorePurchases, store, type PurchaseResult } from '@/services/billing';
 import { resetAdSession } from '@/services/ads';
-import { contextLine, type PaywallContext } from '@/services/paywall';
+import { isoDate, oneOf, smallInt } from '@/security/validate';
+import { contextLine, PAYWALL_CONTEXTS, type PaywallContext } from '@/services/paywall';
 import { useTheme } from '@/theme/ThemeProvider';
 import { motion } from '@/theme/motion';
 import { Banner } from '@/ui/Banner';
@@ -151,7 +152,9 @@ export default function Paywall() {
   const [restoring, setRestoring] = useState(false);
 
   const close = () => (router.canGoBack() ? router.back() : router.replace('/'));
-  const line = contextLine(p.context ?? 'upgrade', { resetsAt: p.resetsAt, limit: p.limit ? Number(p.limit) : null });
+  // Route parameters are untrusted: only known contexts, plain numbers and real dates reach the copy.
+  const context = oneOf(p.context, PAYWALL_CONTEXTS, 'upgrade');
+  const line = contextLine(context, { resetsAt: isoDate(p.resetsAt), limit: smallInt(p.limit) });
   const list = storeProducts.data ?? [];
   const monthly = list.find((x) => x.productId === 'pro_monthly');
   const yearly = list.find((x) => x.productId === 'pro_annual');

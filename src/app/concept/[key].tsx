@@ -1,3 +1,4 @@
+import { guardParams } from '@/components/ParamGuard';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo } from 'react';
 import { View } from 'react-native';
@@ -165,7 +166,7 @@ function Body({ concept }: { concept: Concept }) {
 }
 
 /** Screen 30, Concept detail. */
-export default function ConceptPage() {
+function ConceptPage() {
   const { key } = useLocalSearchParams<{ key: string }>();
   const q = useConcept(key);
   return (
@@ -174,3 +175,6 @@ export default function ConceptPage() {
     </Screen>
   );
 }
+
+// Ids from the route are validated before the screen mounts (deep links are untrusted).
+export default guardParams({ key: 'key' }, ConceptPage);

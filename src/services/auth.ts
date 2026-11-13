@@ -3,7 +3,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 import { config } from '@/config';
-import { persistStorage } from '@/state/storage';
+import { secureStorage } from '@/security/secureStorage';
 
 /**
  * Sign-in adapter. Screens use `useAuth` and `authActions` only. The simulated provider gets
@@ -30,7 +30,9 @@ export class SignInError extends Error {
 const cache: { token: string | null; exp: number; userKey: string | null } = { token: null, exp: 0, userKey: null };
 
 const simulated: AuthProvider = {
+  // Development only. The guards below also let the bundler drop this code from release builds.
   async signIn(method, email) {
+    if (!__DEV__) throw new SignInError('Sign-in is not available in this build.', 'failed');
     if (method === 'email') {
       const e = (email ?? '').trim().toLowerCase();
       if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)) throw new SignInError('Enter a valid email address.', 'failed');
@@ -43,6 +45,7 @@ const simulated: AuthProvider = {
     return { userKey: 'fan', suggestedName: 'Sam' };
   },
   async getToken(userKey, force) {
+    if (!__DEV__) return null;
     const now = Date.now();
     if (!force && cache.userKey === userKey && cache.token && cache.exp - now > 30_000) return cache.token;
     let res: Response;
@@ -105,7 +108,8 @@ export const useAuth = create<AuthState>()(
     (): AuthState => ({ status: 'signedOut', userKey: null, browsing: false, onboarded: [], hydrated: false }),
     {
       name: 'tactiq.auth',
-      storage: persistStorage,
+      // Session state lives in the Keychain / Keystore, not in plain storage.
+      storage: secureStorage,
       partialize: (s) => ({ status: s.status, userKey: s.userKey, browsing: s.browsing, onboarded: s.onboarded }) as AuthState,
       onRehydrateStorage: () => () => {
         useAuth.setState({ hydrated: true });

@@ -1,3 +1,4 @@
+import { guardParams } from '@/components/ParamGuard';
 import { useMemo, useState } from 'react';
 import { View } from 'react-native';
 
@@ -189,10 +190,13 @@ function Loaded({ match, part }: { match: MatchDetail; part: 'main' | 'side' }) 
 }
 
 /** Screen 21, Pressing. Tablet: pitch and explanation side by side. */
-export default function PressingView() {
+function PressingView() {
   return (
     <AnalysisScreen title="Pressing" side={(m) => <Loaded match={m} part="side" />}>
       {(m) => <Loaded match={m} part="main" />}
     </AnalysisScreen>
   );
 }
+
+// Ids from the route are validated before the screen mounts (deep links are untrusted).
+export default guardParams({ matchId: 'uuid', teamId: 'uuid?' }, PressingView);

@@ -1,3 +1,4 @@
+import { guardParams } from '@/components/ParamGuard';
 import { router, useLocalSearchParams } from 'expo-router';
 import { View } from 'react-native';
 
@@ -138,7 +139,10 @@ function Body({ match, playerId }: { match: MatchDetail; playerId: string }) {
 }
 
 /** Screen 25, Player in match: role (inferred), radar, metrics, highlighted on the network. Metered. */
-export default function PlayerInMatchView() {
+function PlayerInMatchView() {
   const { playerId } = useLocalSearchParams<{ playerId: string }>();
   return <AnalysisScreen title="Player in match">{(m) => <Body match={m} playerId={playerId} />}</AnalysisScreen>;
 }
+
+// Ids from the route are validated before the screen mounts (deep links are untrusted).
+export default guardParams({ matchId: 'uuid', playerId: 'uuid' }, PlayerInMatchView);

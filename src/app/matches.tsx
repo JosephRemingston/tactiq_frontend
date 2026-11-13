@@ -1,3 +1,4 @@
+import { guardParams } from '@/components/ParamGuard';
 import { useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, View } from 'react-native';
@@ -52,7 +53,7 @@ function DateSheet({ from, to, onApply }: { from?: string; to?: string; onApply:
 }
 
 /** Screen 10, Matches list: filters, infinite scroll, newest first, a bottom banner for Free users. */
-export default function Matches() {
+function Matches() {
   const { c } = useTheme();
   const insets = useSafeAreaInsets();
   const { openSheet, closeSheet } = useOverlay();
@@ -158,7 +159,7 @@ export default function Matches() {
   return (
     <Screen
       scroll={false}
-      header={<TopBar title={p.title ?? 'Matches'} sub="Newest first" />}
+      header={<TopBar title={typeof p.title === 'string' && p.title ? p.title.slice(0, 60) : 'Matches'} sub="Newest first" />}
       footer={ads.banner && ads.cfg ? <View style={{ paddingBottom: insets.bottom, backgroundColor: c.sponsored }}><BannerAd cfg={ads.cfg} placementKey={ads.banner.key} max={ads.banner.maxPerSession} /></View> : null}>
       <QueryBoundary
         query={q}
@@ -189,3 +190,6 @@ export default function Matches() {
     </Screen>
   );
 }
+
+// Ids from the route are validated before the screen mounts (deep links are untrusted).
+export default guardParams({ competitionId: 'uuid?', seasonId: 'uuid?', teamId: 'uuid?' }, Matches);

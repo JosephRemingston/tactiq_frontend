@@ -1,3 +1,4 @@
+import { guardParams } from '@/components/ParamGuard';
 import { useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 
@@ -10,7 +11,7 @@ import { TopBar } from '@/ui/TopBar';
 import { SquadGroups } from '@/components/Squad';
 
 /** Screen 12, Squad list: GK / DEF / MID / FWD with shirt number, known name, appearances and starts. */
-export default function Squad() {
+function Squad() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const team = useTeam(id);
   const [season, setSeason] = useState<string | undefined>();
@@ -32,3 +33,6 @@ export default function Squad() {
     </Screen>
   );
 }
+
+// Ids from the route are validated before the screen mounts (deep links are untrusted).
+export default guardParams({ id: 'uuid' }, Squad);

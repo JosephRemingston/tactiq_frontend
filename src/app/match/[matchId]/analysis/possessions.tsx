@@ -1,3 +1,4 @@
+import { guardParams } from '@/components/ParamGuard';
 import { useMemo, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 
@@ -151,6 +152,9 @@ function Body({ match }: { match: MatchDetail }) {
 }
 
 /** Screen 23, Possessions: possession chains with replay. Filters are Pro. Metered. */
-export default function PossessionsView() {
+function PossessionsView() {
   return <AnalysisScreen title="Possessions">{(m) => <Body match={m} />}</AnalysisScreen>;
 }
+
+// Ids from the route are validated before the screen mounts (deep links are untrusted).
+export default guardParams({ matchId: 'uuid', teamId: 'uuid?' }, PossessionsView);

@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { router } from 'expo-router';
+import { Redirect, router } from 'expo-router';
 import { useState } from 'react';
 import { View } from 'react-native';
 
@@ -40,7 +40,7 @@ function Chip({ label, on, onPress }: { label: string; on: boolean; onPress: () 
 }
 
 /** Dev menu (development builds only). Every switch here drives the real local backend. */
-export default function DevMenu() {
+function DevMenu() {
   const qc = useQueryClient();
   const { snack } = useOverlay();
   const auth = useAuth();
@@ -152,4 +152,9 @@ export default function DevMenu() {
       </Stack>
     </Screen>
   );
+}
+
+/** Development builds only. In a release build this route does not exist: it redirects home. */
+export default function DevMenuRoute() {
+  return __DEV__ ? <DevMenu /> : <Redirect href="/" />;
 }
